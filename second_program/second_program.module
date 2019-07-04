@@ -1,0 +1,154 @@
+<?php
+
+/**
+ * implements hook_menu().
+ */
+function second_program_menu() {
+  $items['second-program'] = array(
+    'title' => 'Second Program Page',
+    'page callback' => 'second_program_page',
+    'access arguments' => array('access content'),
+  );
+  return $items;
+}
+
+/**
+ * Second program page.
+ */
+function second_program_page() {
+  $form = drupal_get_form('second_program_form');
+  return drupal_render($form);
+}
+
+/**
+ * Implements hook_form().
+ *  Display form to user for the input.
+ */
+function second_program_form($form, &$form_state) {
+  $form['testcase'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Test Case'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+  );
+  $form['testcase']['nooftestcase'] = array(
+    '#type' => 'textfield',
+    '#title' => t('No of test case'),
+    '#default_value' => (isset($form_state['values']['nooftestcase'])) ? $form_state['values']['nooftestcase'] : '',
+    '#required' => TRUE,
+  );
+  $form['testcase']['next'] = array(
+    '#type' => 'submit',
+    '#value' => 'Next >>',
+  );
+  if (isset($form_state['storage']['page_two'])) {
+    //print '<pre>';print_r($form_state['storage']);exit;
+    $nooftest = $form_state['storage']['page_one_values']['nooftestcase'];
+    if ($nooftest) {
+      $form['query'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Input Fields'),
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,
+      );
+      for ($i = 1; $i <= $nooftest; $i++) {
+        $form['query']['testcase-' . $i] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Test Case-' . $i),
+          '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+        );
+        $form['query']['testcase-' . $i]['first_line-' . $i] = array(
+          '#type' => 'textfield',
+          '#title' => t('First Line: S1'),
+          '#default_value' => (isset($form_state['values']['first_line-' . $i])) ? $form_state['values']['first_line-' . $i] : '',
+        );
+        $form['query']['testcase-' . $i]['second_line-' . $i] = array(
+          '#type' => 'textfield',
+          '#title' => t('Second Line: S2'),
+          '#default_value' => (isset($form_state['values']['second_line-' . $i])) ? $form_state['values']['second_line-' . $i] : '',
+        );
+        $form['query']['testcase-' . $i]['third_line-' . $i] = array(
+          '#type' => 'select',
+          '#options' => array('Y' => 'Y', 'N' => 'N'),
+          '#title' => t('Third Line: C'),
+          '#default_value' => (isset($form_state['values']['third_line-' . $i])) ? $form_state['values']['third_line-' . $i] : '',
+        );
+        $form['query']['testcase-' . $i]['fourth_line-' . $i] = array(
+          '#type' => 'textfield',
+          '#title' => t('Fourth Line: I'),
+          '#default_value' => (isset($form_state['values']['fourth_line-' . $i])) ? $form_state['values']['fourth_line-' . $i] : '',
+        );
+      }
+      $form['query']['submit'] = array(
+        '#type' => 'submit',
+        '#value' => 'Get Result',
+      );
+    }
+  }
+  return $form;
+}
+
+/**
+ * Implemetns hook_form_submit().
+ * @param type $form
+ * @param type $form_state
+ */
+function second_program_form_submit($form, &$form_state) {
+  if ($form_state['clicked_button']['#id'] == 'edit-next') {
+    $form_state['storage']['page_two'] = TRUE;
+    $form_state['storage']['page_one_values'] = $form_state['values'];
+    $form_state["rebuild"] = TRUE;
+  }
+  else {
+    $nooftestcase = $form_state['values']['nooftestcase'];
+    if ($nooftestcase) {
+      for ($i = 1; $i <= $nooftestcase; $i++) {
+        $first_line = $form_state['values']['first_line-' . $i];
+        $second_line = $form_state['values']['second_line-' . $i];
+        $third_line = $form_state['values']['third_line-' . $i];
+        $fourth_line = $form_state['values']['fourth_line-' . $i];
+        if ($third_line == 'Y') {
+          $position = strpos($first_line, $second_line, $fourth_line);
+          if ($position == true) {
+            $leftspace = FALSE;
+            $rightspace = FALSE;
+            $left_space = $first_line[($position - 1)];
+            if ($left_space == ' ') {
+              $leftspace = TRUE;
+            }
+            $length = strlen($second_line);
+            $pos = ($position + $length);
+            $right_space = $first_line[$pos];
+            if ($right_space == ' ') {
+              $rightspace = TRUE;
+            }
+            if ($leftspace && $rightspace) {
+              $msz = $position;
+              drupal_set_message($msz, 'status');
+            }
+            else {
+              $msz = "No Worries";
+              drupal_set_message($msz, 'status');
+            }
+          }
+          else {
+            $msz = "No Worries";
+            drupal_set_message($msz, 'status');
+          }
+        }
+        if ($third_line == 'N') {
+          $position = strpos($first_line, $second_line, $fourth_line);
+          if ($position == true) {
+            $msz = $position;
+            drupal_set_message($msz, 'status');
+          }
+          else {
+            $msz = "No Worries";
+            drupal_set_message($msz, 'status');
+          }
+        }
+      }
+    }
+  }
+}
